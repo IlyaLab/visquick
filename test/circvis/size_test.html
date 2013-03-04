@@ -1,0 +1,93 @@
+<html>
+
+<head>
+    <meta http-equiv="PRAGMA" content="NO-CACHE">
+    <title>Circvis Size Manupulation Test</title>
+    <!-- Font Awesome - http://fortawesome.github.com/Font-Awesome -->
+    <link rel="stylesheet" href="../../assets/css/font-awesome.css">
+
+    <link href="../../assets/css/vq.css" type="text/css" rel="stylesheet" />
+
+    <script type="text/javascript" src="../../lib/d3/d3.v2.min.js"></script>
+    <script src="../../lib/jquery/jquery-1.7.1.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../../lib/underscore/underscore.js"></script>
+    <script type="text/javascript" src="../../vq.js"></script>
+    <script type="text/javascript" src="../../vq.circvis.js"></script>
+    <script type="text/javascript" src="../../data/circvis_data.json"></script>
+
+
+    <script type="text/javascript" src="js/circvis_configure.js"></script>
+    <script type="text/javascript" src="js/data_generate.js"></script>
+
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!--[if IE 7]>
+    <link rel="stylesheet" href="../../assets/css/font-awesome-ie7.css">
+    <![endif]-->
+</head>
+<body>
+
+<button id="shrink">Shrink Display</button><br />
+<button id="grow">Grow Display</button><br />
+
+Drag the circvis (on the rings) to rotate the entire display.<br/>
+
+<div id="wedge" style="font: 10px sans-serif;margin:10px;"></div>
+
+<script type="text/javascript">
+
+ $('#shrink').on('click',function() {
+               shrink();
+    });
+  $('#grow').on('click',function() {
+               grow();
+    });
+
+var features = [];
+
+var associations = [];
+
+function shrink() {
+    circle.size(300,300);
+}
+
+function grow() {
+    circle.size(700,700);
+}
+
+var fg = new FeatureGenerator({
+    nodes: {
+        fields: [
+        {property:'mutation_count', max:400, roundOff:true},
+        {property:'annotated_type', max:5, roundOff:true}
+        ]
+    },
+    edges: {
+        fields: [
+        {property:'logged_pvalue', max:300, roundOff:true}
+        ]
+    }
+});
+
+
+console.log('edges are stored in the variable "associations".');
+console.log('extra nodes are stored in the variable "features".');
+
+function addRFAssociations(edges) {
+              circle.addEdges(edges);
+}
+
+var circle;
+circle = circvis.plot($('#wedge').get(0));
+
+
+var new_associations = _.map(_.range(50),function() { return fg.generateAssociation(0);},fg);
+addRFAssociations(new_associations);
+associations = associations.concat(new_associations);
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,290 @@
+<html>
+
+<head>
+    <meta http-equiv="PRAGMA" content="NO-CACHE">
+    <title>Wedge Demo</title>
+    <!-- Font Awesome - http://fortawesome.github.com/Font-Awesome -->
+    <link rel="stylesheet" href="../../assets/css/font-awesome.css">
+
+    <link href="../../assets/css/vq.css" type="text/css" rel="stylesheet" />
+
+    <script type="text/javascript" src="../../lib/protovis/protovis.js"></script>
+    <script type="text/javascript" src="../../lib/d3/d3.v2.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../../lib/underscore/underscore.js"></script>
+    <script type="text/javascript" src="../../lib/science/science.js"></script>
+    <script type="text/javascript" src="../../vq.js"></script>
+    <script type="text/javascript" src="../../vq.wedge.js"></script>
+    <script type="text/javascript" src="../../data/circvis_data.json"></script>
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!--[if IE 7]>
+      <link rel="stylesheet" href="../../assets/css/font-awesome-ie7.css">
+    <![endif]-->
+</head>
+<body>
+
+<button id="1_random_edge">Add 1 Random Edges</button><br />
+<button id="50_random_edge">Add 50 Random Edges</button><br />
+<button id="50_random_edge_wo_node_attr">Add 50 Random Edges without
+    Node Attributes</button><br />
+
+Drag the circvis (on the rings) to rotate the entire display.<br/>
+
+<div id="wedge" style="font: 10px sans-serif;margin:10px;"></div>
+
+<script type="text/javascript">
+function generateAssociation(sparse) {
+    var in1 =
+            Math.round(Math.random()*(chrom_keys.length-1));
+    var in2 =
+            Math.round(Math.random()*(chrom_keys.length-1));
+    var chr1 = chrom_keys[in1];
+    var chr2 = chrom_keys[in2];
+    var mut1 = Math.round(Math.random()*6);
+    var mut2 = Math.round(Math.random()*6);
+    var val1 = (Math.random()*0.3).toFixed(4);
+    var val2 = (Math.random()*0.3).toFixed(4);
+    var cnv1 = Math.round(Math.random()*500);
+    var cnv2 = Math.round(Math.random()*500);
+    var start1 = Math.round(Math.random() *
+            (chrom_attr[chr1].length - 50000));
+    var start2 = Math.round(Math.random() *
+            (chrom_attr[chr2].length - 50000));
+    if (sparse) {
+
+        circle.addEdges({node1:{label:'C:METH:ZZZ:'+chr1+':'+start1+':'+start1+50000+'::',chr:chr1,start:start1,end:start1
+                + 50000,source:'METH'},
+
+            node2:{label:'C:GEXP:YYY:'+chr2+':'+start1+':'+start1+50000+'::',chr:chr2,start:start2,end:start2
+                    + 50000,source:'GEXP'},assoc_value1:val1});
+        return;
+    }
+
+    circle.addEdges({node1:{label:'C:METH:ZZZ:'+chr1+':'+start1+':'+start1+50000+'::',chr:chr1,start:start1,end:start1
+            + 50000,source:'METH', mutation_count:mut1,cnv:cnv1},
+
+        node2:{label:'C:GEXP:YYY:'+chr2+':'+start1+':'+start1+50000+'::',chr:chr2,start:start2,end:start2
+                + 50000,source:'GEXP', mutation_count:mut2,cnv:cnv2},assoc_value1:val1})
+}
+
+$('#50_random_edge').on('click',function() {
+            _(_.range(0,50)).each(function(){generateAssociation();});
+        }
+);
+$('#1_random_edge').on('click',function() {
+            generateAssociation();
+        }
+);
+$('#50_random_edge_wo_node_attr').on('click',function() {
+            _(_.range(0,50)).each(function(){generateAssociation(true);});
+        }
+);
+
+
+var circle;
+
+
+
+function wedge_plot(div) {
+    var width=1200, height=1200;
+    var	cnv_ring_height = 60;
+
+    var tick_keys = ['METH','CNVR','hsa-miR','GEXP','GNAB'],
+            color_scale =    { 'GEXP': '#1f77b4',
+                    //blue
+                    'METH': '#2ca02c',
+                    //green
+                    'CNVR': '#ff7f0e',
+                    //orange
+                    'MIRN': '#9467bd',
+                    //purple
+                    'GNAB': '#d62728',
+                    //red
+                    'PRDM': '#8c564b',
+                    //pink
+                    'RPPA': '#e377c2',
+                    //brown
+                    'CLIN': '#7f7f7f',
+                    'SAMP': '#bcbd22',
+                    'other' : '#17becf'
+                };
+
+    var tick_colors = function(data) {
+        var tick_key = data.source;
+        return color_scale[tick_key] || color_scale['other'];
+    };
+
+    var label_map = {'METH' : 'DNA Methylation',
+                        'CNVR': 'Copy Number Variation REGION',
+                        'hsa-miR' :'uRNA',
+                        'GEXP': 'Gene Expression',
+                        CLIN: 'Clinical',
+                        'SAMP': 'Tumor Sample'};
+
+    var hovercard_config = {Feature:function(feature) { var label = feature.label.split(':'); return '<span style="color:'+tick_colors(feature)+'">' +
+            label_map[label[1]] + '</span> ' + label[2];},
+                        Location: function(feature) { return 'Chr ' + feature.chr + ' ' + feature.start + (feature.end ? '-' + feature.end : '');},
+                        'Copy Num Variation' : 'cnv','Somatic Mutations': 'mutation_count'};
+
+    var data = {
+        PLOT: {
+            container: div,
+            width : width,
+            height: height,
+            vertical_padding : 10,
+            horizontal_padding: 10,
+            enable_pan : false,
+            enable_zoom : false,
+            show_legend: true,
+            legend_corner : 'ne',
+            legend_radius  : 45
+        },
+
+        GENOME: {
+            DATA:{
+                key_order : chrom_keys,
+                key_length :_.map(chrom_keys, function(key) {return {chr_name:key, chr_length:chrom_attr[key].length};})
+            },
+            OPTIONS: {
+                radial_grid_line_width : 2,
+                label_layout_style:'clock',
+                label_font_style:'16px helvetica'
+            }
+        },
+
+        WEDGE:[
+            {
+                PLOT : {
+                    height : 35,
+                    type : 'karyotype'
+                } ,
+                DATA:{
+                    data_array : cytoband
+                },
+                OPTIONS: {
+
+                    legend_label : 'Cytogenic Bands',
+                    legend_description : 'Cytogenic Bands',
+                    listener : function() {return null;},
+                    outer_padding: 15,
+                    stroke_style:'#777',
+                    line_width:'0.5px',
+                    tooltip_items:{'Cytogenic Band':'label',
+                            "Location": function(feature) { return 'Chr ' + feature.chr + ' ' + feature.start + (feature.end ? '-' + feature.end : '');}
+                    }
+                }
+            },
+            {   PLOT : {
+                height : cnv_ring_height,
+                type : 'histogram'
+            } ,
+                DATA:{
+                    data_array : [],//cnv
+                    value_key:'cnv'
+                },
+                OPTIONS: {
+                    fill_style:'orange',
+                    stroke_style:'orange',
+                    base_value : 0,
+                    legend_label : 'Mean CNV',
+                    line_width : 3.5,
+                    legend_description : 'Mean Copy Number Variation',
+                    listener : listener,
+                    outer_padding: 15,
+                    tooltip_items: hovercard_config,
+                    min_value : 0,
+                    max_value: 500
+                }
+            },
+            {
+                PLOT : {
+
+                    height : 60,
+                    type : 'scatterplot'
+                },
+                DATA:{
+                    data_array : [],//link_density,
+                    value_key : 'mutation_count'
+                },
+                OPTIONS: {
+                    legend_label : 'Mutation Count',
+                    legend_description : 'Mutation Count',
+                    min_value : 0,
+                    max_value : 6,
+                    base_value : 0,
+                    radius : 6,
+                    shape : 'circle',
+                    outer_padding: 15,
+                    stroke_style : null,
+                    tooltip_items: hovercard_config,
+                    fill_style: tick_colors,
+                    listener : listener
+                }
+            }
+        ],
+
+        TICKS : {
+            DATA: {
+                data_array:[]
+            },
+            OPTIONS : {
+                wedge_height: 15,
+                wedge_width:0.7,
+                overlap_distance:10000000, //tile ticks at specified base pair distance
+                height : 120,
+                display_legend : true,
+                legend_corner : 'nw',
+                fill_style : tick_colors,
+                tooltip_items: hovercard_config
+            }
+        },
+
+        NETWORK:{
+            DATA:{
+                data_array : []//
+            },
+            OPTIONS: {
+                outer_padding : 10,
+                node_radius:6,
+                node_fill_style : tick_colors,
+                link_stroke_style : 'red',
+                link_line_width:8,
+                link_alpha : 0.6,
+                node_highlight_mode : 'isolate',
+                node_key : function(node) { return node.label;},
+                node_tooltip_items :  hovercard_config,
+                link_tooltip_items :  {
+                    'Target' : function(link) { var label = link.source.label.split(':'); return '<span style="color:'+tick_colors(link.source)+'">' +
+                                label_map[label[1]] + '</span> ' + label[2];},
+                    'Target Location' : function(link) { return 'Chr ' + link.source.chr + ' ' + link.source.start +
+                            (link.source.end ? '-' + link.source.end : '');},
+                    'Predictor' : function(link) { var label = link.target.label.split(':'); return '<span style="color:'+tick_colors(link.target)+'">' +
+                                label_map[label[1]] + '</span> ' + label[2];},
+                    'Predictor Location' : function(link) { return 'Chr ' + link.target.chr + ' ' + link.target.start +
+                                                (link.target.end ? '-' + link.target.end : '');},
+                    Importance:'assoc_value1'
+                }
+            }
+        }
+    };
+
+    var listener = function(list) { return console.log("listener!"); };
+    var circle_vis = new vq.CircVis();
+    var dataObject ={DATATYPE : "vq.models.CircVisData", CONTENTS : data };
+
+
+    circle_vis.draw(dataObject);
+
+    return circle_vis;
+}
+
+circle = wedge_plot(document.getElementById('wedge'));
+
+</script>
+
+</body>
+</html>

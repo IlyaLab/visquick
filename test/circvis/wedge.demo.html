@@ -1,0 +1,99 @@
+<html>
+
+<head>
+    <meta http-equiv="PRAGMA" content="NO-CACHE">
+    <title>Wedge Demo</title>
+    <!-- Font Awesome - http://fortawesome.github.com/Font-Awesome -->
+    <link rel="stylesheet" href="../../assets/css/font-awesome.css">
+
+    <link href="../../assets/css/vq.css" type="text/css" rel="stylesheet" />
+
+    <script type="text/javascript" src="../../lib/d3/d3.v2.min.js"></script>
+    <script src="../../lib/jquery/jquery-1.7.1.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../../lib/underscore/underscore.js"></script>
+    <script type="text/javascript" src="../../vq.js"></script>
+    <script type="text/javascript" src="../../vq.circvis.js"></script>
+    <script type="text/javascript" src="../../data/circvis_data.json"></script>
+
+
+    <script type="text/javascript" src="js/circvis_configure.js"></script>
+
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!--[if IE 7]>
+    <link rel="stylesheet" href="../../assets/css/font-awesome-ie7.css">
+    <![endif]-->
+</head>
+<body>
+
+<button id="1_random_edge">Add 1 Random Edges</button><br />
+<button id="50_random_edge">Add 50 Random Edges</button><br />
+<!-- <button id="50_remove">Remove 50 Random Edges</button><br /> -->
+<button id="all_remove">Remove all Random Edges</button><br />
+<button id="all_clin_remove">Remove all Random Clinical Associations</button><br /> 
+
+Drag the circvis (on the rings) to rotate the entire display.<br/>
+
+<div id="wedge" style="font: 10px sans-serif;margin:10px;"></div>
+
+<script type="text/javascript">
+
+    $('#50_random_edge').on('click',function() {
+                var associations = _.map(_.range(30),fg.generateAssociation);
+                addRFAssociation(associations);
+            }
+    );
+    $('#1_random_edge').on('click',function() {
+                addRFAssociation(fg.generateAssociation());
+            }
+    );
+
+    $('#all_clin_remove').on('click', function() {
+            circle.removeNodes(function(node) {return !_.isUndefined(node.clin_alias);});
+    });
+    $('#all_remove').on('click', function() {
+            circle.removeEdges('all');
+    });
+  
+    var fg = new FeatureGenerator({
+        nodes: {
+            fields: [
+            {property:'mut', max:400, roundOff:true}
+            ]
+        },
+        edges: {
+            fields: [
+            {property:'logged_pvalue', max:300, roundOff:true}
+            ]
+        }
+    });
+
+    var associations = _.map(_.range(30),fg.generateAssociation);
+
+    function addRFAssociation(array) {
+        var edges = [],
+            nodes =[];
+            array = _.isArray(array) ? array : [array];
+                _.each(array, function(assoc){
+                    if (_.isEmpty(assoc.node1.chr)) {
+                        nodes.push(_.extend(assoc.node2,{clin_alias:assoc.node1.label}));
+                        return;
+                    }
+                    else {
+                        edges.push(assoc);
+                    }        
+                });
+                circle.addEdges(edges);
+                circle.addNodes(nodes);
+    }
+
+
+    var circle;
+    circle = circvis.plot($('#wedge').get(0));
+
+</script>
+
+</body>
+</html>
