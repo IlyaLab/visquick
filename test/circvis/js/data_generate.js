@@ -4,6 +4,9 @@
 	var _ = root._;
 
  	var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXTZ';
+ 	var chrom_keys = vq.data.genome.chrom_keys;
+ 	var chrom_attr = vq.data.genome.chrom_attr;
+ 	
  	var fg = root.FeatureGenerator = function(options) {
 
  		var defaults = {

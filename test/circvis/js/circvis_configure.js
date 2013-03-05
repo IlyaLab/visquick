@@ -111,6 +111,9 @@
     ];
 
     var hovercard_links_config = {};
+    var chrom_keys = vq.data.genome.chrom_keys;
+    var chrom_attr = vq.data.genome.chrom_attr;
+    var cytoband = vq.data.genome.cytoband;
 
     _.each(links, function(item){hovercard_links_config[item.label]=item;});
     var data = function(div) { return {
@@ -166,31 +169,31 @@
             //         }
             //     }
             // },
-            // {   PLOT : {
-            //     height : 60,
-            //     type : 'glyph'
-            //     } ,
-            //     DATA:{
-            //         value_key:'annotated_type',
-            //     },
-            //     OPTIONS: {
-            //         tile_height: 10,
-            //         tile_padding: 4,
-            //         tile_overlap_distance: 100000000,
-            //         tile_show_all_tiles : true,
-            //         fill_style : function(feature) { return type_color(types[feature.annotated_type]);},
-            //         stroke_style : null,
-            //         line_width : 3,
-            //         legend_label : 'Clinical Associations',
-            //         shape : clinical_shape,
-            //         radius : 9,
-            //         legend_description : 'Clinical Associations',
-            //         listener : function() {return null;},
-            //         outer_padding: 5,
-            //         tooltip_items: clinical_hovercard_items_config,
-            //         tooltip_links: hovercard_links_config
-            //     }
-            // },
+            {   PLOT : {
+                height : 60,
+                type : 'glyph'
+                } ,
+                DATA:{
+                    value_key:'annotated_type',
+                },
+                OPTIONS: {
+                    tile_height: 10,
+                    tile_padding: 4,
+                    tile_overlap_distance: 100000000,
+                    tile_show_all_tiles : true,
+                    fill_style : function(feature) { return type_color(types[feature.annotated_type]);},
+                    stroke_style : null,
+                    line_width : 3,
+                    legend_label : 'Clinical Associations',
+                    shape : clinical_shape,
+                    radius : 9,
+                    legend_description : 'Clinical Associations',
+                    listener : function() {return null;},
+                    outer_padding: 5,
+                    tooltip_items: clinical_hovercard_items_config,
+                    tooltip_links: hovercard_links_config
+                }
+            },
             {
                 PLOT : {
 

@@ -8,14 +8,13 @@
 
     <link href="../../assets/css/vq.css" type="text/css" rel="stylesheet" />
 
-    <script type="text/javascript" src="../../lib/protovis/protovis.js"></script>
-    <script type="text/javascript" src="../../lib/d3/d3.v2.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
+   <script type="text/javascript" src="../../lib/d3/d3.min.js"></script>
+    <script src="../../lib/jquery/jquery.js" type="text/javascript"></script>
     <script type="text/javascript" src="../../lib/underscore/underscore.js"></script>
     <script type="text/javascript" src="../../lib/science/science.js"></script>
     <script type="text/javascript" src="../../vq.js"></script>
-    <script type="text/javascript" src="../../vq.wedge.js"></script>
-    <script type="text/javascript" src="../../data/circvis_data.json"></script>
+    <script type="text/javascript" src="../../vq.circvis.js"></script>
+    <script type="text/javascript" src="../../data/genome_data.json"></script>
 
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -35,6 +34,11 @@ Drag the circvis (on the rings) to rotate the entire display.<br/>
 <div id="wedge" style="font: 10px sans-serif;margin:10px;"></div>
 
 <script type="text/javascript">
+
+    var chrom_keys = vq.data.genome.chrom_keys;
+    var chrom_attr = vq.data.genome.chrom_attr;
+    var cytoband = vq.data.genome.cytoband;
+
 function generateAssociation(sparse) {
     var in1 =
             Math.round(Math.random()*(chrom_keys.length-1));
@@ -271,11 +275,9 @@ function wedge_plot(div) {
     };
 
     var listener = function(list) { return console.log("listener!"); };
-    var circle_vis = new vq.CircVis();
     var dataObject ={DATATYPE : "vq.models.CircVisData", CONTENTS : data };
-
-
-    circle_vis.draw(dataObject);
+    var circle_vis = vq.CircVis(dataObject);
+    circle_vis();
 
     return circle_vis;
 }
