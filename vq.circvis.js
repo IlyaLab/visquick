@@ -567,8 +567,7 @@ var _drawWedgeData_array = {
         .duration(800)
         .style('fill-opacity', 1e-6)
                 .style('stroke-opacity', 1e-6)
-        .remove()        
-        .each("end",function(n) { remove_wedge_layout(n,wedge);});
+        .remove();        
 },
 
  'tile' : function(chr, wedge_index) {
@@ -600,12 +599,10 @@ var _drawWedgeData_array = {
 
     tile.exit()
         .transition()
-        
         .duration(800)
         .style('fill-opacity', 1e-6)
                 .style('stroke-opacity', 1e-6)
-        .remove()
-        .each("end",function(n) { remove_wedge_layout(n,wedge);});
+        .remove();
 },
 
  'karyotype' : function (chr, wedge_index) {
@@ -636,7 +633,6 @@ var _drawWedgeData_array = {
 
     karyotype.exit()
         .transition()
-        
         .duration(800)
         .style('fill-opacity', 1e-6)
                 .style('stroke-opacity', 1e-6)
@@ -677,7 +673,6 @@ var _drawWedgeData_array = {
         .endAngle(function(point) { return chromoData._ideograms[chr].theta(point.end);})
     )
         .transition()
-        
         .duration(800)
         .transition()
         
@@ -728,9 +723,6 @@ function _draw_axes_ticklabels (wedge_index) {
 
 };
 
-function remove_wedge_layout(node,wedge) {
-    delete wedge._layout[wedge._hash(node)];
-};
 /** private **/
 var _drawTicks = function(chr) {
     var that = this;
