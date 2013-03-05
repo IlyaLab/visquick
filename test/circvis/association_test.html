@@ -16,7 +16,6 @@
     <script type="text/javascript" src="../../vq.circvis.js"></script>
     <script type="text/javascript" src="../../data/genome_data.json"></script>
 
-
     <script type="text/javascript" src="js/circvis_configure.js"></script>
     <script type="text/javascript" src="js/data_generate.js"></script>
 
@@ -33,7 +32,8 @@
 <button id="1_random_edge">Add 1 Random Edges</button><br />
 <button id="30_random_edge">Add 30 Random Edges</button><br />
 <button id="30_edges_remove">Remove 30 Random Edges</button><br />
-<button id="all_edges_remove">Remove all Random Edges</button><br /><br />
+<!-- <button id="all_edges_remove">Remove all Random Edges</button> -->
+    <br /><br />
 <button id="30_nodes_add">Add 30 Nodes</button><br /> 
 <button id="30_nodes_remove">Remove 30 Nodes</button><br /> 
 
@@ -76,7 +76,7 @@ var associations = [];
                 features = features.concat(new_features);
     });
 
-      $('#30_nodes_remove').on('click', function() {
+    $('#30_nodes_remove').on('click', function() {
             if (features.length) { circle.removeNodes(features.splice(-30,30)); }
     });
     var fg = new FeatureGenerator({
