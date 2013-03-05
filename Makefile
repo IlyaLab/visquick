@@ -58,6 +58,12 @@ vq%.js: Makefile
 	cat $(filter %.js,$^) > $@
 	@chmod a+w $@
 
+
+examples: Makefile
+	mkdir -p examples/js
+	cp vq*.js examples/js
+	cp -rf lib examples/
+	cp -rf data examples/
 docs:
 	mkdir docs
 	$(JSDOC_COMPILER) . -d=docs
