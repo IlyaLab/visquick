@@ -248,7 +248,7 @@ function _drawWedge_withRange (chr, wedge_index) {
     var wedge = ideogram.wedge[wedge_index];
     var wedge_obj = d3.select('.ideogram[data-region="'+chr+'"] .wedge[data-ring="'+wedge_index+'"]');
 
-    if (wedge_params._draw_axes) {
+    if (wedge_params.draw_axes) {
         /* Circular grid lines. */
         //add a new panel each time we want to draw on top of the previously created image.
         var p = chromoData._chrom.groups[chr];
@@ -673,6 +673,7 @@ var _drawWedgeData_array = {
         .endAngle(function(point) { return chromoData._ideograms[chr].theta(point.end);})
     )
         .transition()
+        
         .duration(800)
         .transition()
         
@@ -704,7 +705,7 @@ function _draw_axes_ticklabels (wedge_index) {
     //don't do this for ring without a range.
     if(!_.isFunction(wedge_params._y_linear)) { return;}
 
-    if (wedge_params._draw_axes) {
+    if (wedge_params.draw_axes) {
         /* Circular grid lines. */
 
         // generate ticks for y_axis
@@ -1706,7 +1707,7 @@ vq.models.CircVisData.WedgeData.prototype.setDataModel = function() {
         {label : '_legend_label', id: 'OPTIONS.legend_label', cast: String, defaultValue : '' },
         {label : '_legend_desc', id: 'OPTIONS.legend_description', cast: String, defaultValue : '' },
         {label : '_draw_axes', id: 'OPTIONS.draw_axes', cast: Boolean, defaultValue : true },
-        {label : '_draw_axes', id: 'OPTIONS.show_tooltips', cast: Boolean, defaultValue : true },
+        {label : '_show_tooltips', id: 'OPTIONS.show_tooltips', cast: Boolean, defaultValue : true },
         {label : '_tooltipFormat', id: 'OPTIONS.tooltipFormat', cast :vq.utils.VisUtils.wrapProperty,
             defaultValue : function(c, d) {
                 return "Chr " + d + "\nStart: " + c.start + "\nEnd: " + c.end;

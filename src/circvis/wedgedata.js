@@ -46,7 +46,7 @@ vq.models.CircVisData.WedgeData.prototype.setDataModel = function() {
         {label : '_legend_label', id: 'OPTIONS.legend_label', cast: String, defaultValue : '' },
         {label : '_legend_desc', id: 'OPTIONS.legend_description', cast: String, defaultValue : '' },
         {label : '_draw_axes', id: 'OPTIONS.draw_axes', cast: Boolean, defaultValue : true },
-        {label : '_draw_axes', id: 'OPTIONS.show_tooltips', cast: Boolean, defaultValue : true },
+        {label : '_show_tooltips', id: 'OPTIONS.show_tooltips', cast: Boolean, defaultValue : true },
         {label : '_tooltipFormat', id: 'OPTIONS.tooltipFormat', cast :vq.utils.VisUtils.wrapProperty,
             defaultValue : function(c, d) {
                 return "Chr " + d + "\nStart: " + c.start + "\nEnd: " + c.end;
