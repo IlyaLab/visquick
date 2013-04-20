@@ -1,0 +1,19 @@
+{
+  "name": "visquick",
+  "version": "0.1.0",
+  "main": "./vq.js",
+  "readme": "# Visquick visualizations\n\n**Visquick** is a set of visualizations built in JavaScript using the D3.js library. Circvis and Scatterplot are currently available.",
+  "readmeFilename": "README.md",
+  "_id": "visquick@0.1.0",
+  "description": "Visquick is a set of visualizations built in JavaScript using the D3.js library. Circvis and Scatterplot are currently available.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/rbkreisberg/visquick.git"
+  },
+  "dependencies": {
+    "d3": "~3.1.5",
+    "underscore": "~1.4.4",
+    "jquery": "~2.0.0",
+    "science": "git://github.com/jasondavies/science.js.git#~1.9.1"
+  }
+}
