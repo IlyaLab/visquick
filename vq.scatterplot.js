@@ -77,10 +77,14 @@ vq.ScatterPlot.prototype.draw = function(data) {
     // Regression line
     this.regressData = this.getRegressData(scales);
 
+    dataObj._plot.svg_id = vq.utils.VisUtils.guid();
+
     this.vis = d3.select(dataObj._plot.container)
         .append("svg")
+        .attr('id', dataObj._plot.svg_id)
         .attr("width", width + 2 * dataObj.horizontal_padding)
-        .attr("height", height + 2 * dataObj.vertical_padding);
+        .attr("height", height + 2 * dataObj.vertical_padding)
+        .on('selectstart', function() {d3.event.preventDefault();});
 
     this.data_area = this.vis
         .append("g")
@@ -88,17 +92,8 @@ vq.ScatterPlot.prototype.draw = function(data) {
         .attr("width", width)
         .attr("height", height);
 
-    // Rectangle around the scale lines.
-    // Also used for zoom mouse events.
-    this.data_rect = this.data_area
-        .append("rect")
-        .attr("class", "data-rect")
-        .attr("width", width)
-        .attr("height", height)
-        .attr("stroke", "#aaaaaa")
-        .attr("stroke-width", 1.5)
-        .attr("fill-opacity", 0.0)
-        .attr("pointer-events", "all");
+    this.brush_layer = this.data_area.append("g")
+        .attr("class", "plot_brush");
 
     // Add the Y-axis label
     this.data_area.append("g")
@@ -130,6 +125,9 @@ vq.ScatterPlot.prototype.draw = function(data) {
     this.brush = d3.svg.brush();
 
     this._render();
+    this.enableZoom();
+    this.disableZoom();
+    this.enableBrush();
 };
 
 vq.ScatterPlot.prototype.getRegressData = function(scaleInfo) {
@@ -340,6 +338,16 @@ vq.ScatterPlot.prototype.updateData = function(disableTransition) {
     var dr = this.data.transitionDuration;
     var enable = dataObj.enableTransitions && (!disableTransition);
 
+    var data_hovercard = vq.hovercard({
+            canvas_id : dataObj._plot.svg_id,
+            include_header : false,
+            include_footer : true,
+            self_hover : true,
+            timeout : dataObj.tooltipTimeout,
+            data_config : dataObj.tooltipItems,
+            tool_config : dataObj.tooltipLinks
+    });
+
     // Dots
     var dots = this.data_area.select("svg.symbols")
         .selectAll("circle")
@@ -353,7 +361,9 @@ vq.ScatterPlot.prototype.updateData = function(disableTransition) {
         .attr("cy", function(d) {return that.yScale(d[that.y])})
         .attr("r", dataObj._radius)
         .call(_.bind(this.setDefaultSymbolStyle, this))
-        .style("opacity", 1e-6);
+        .style("opacity", 1e-6)
+        .on('mouseover', function(d) { data_hovercard.call(this,d); } )
+        .on('click', function(d) { dataObj._clickHandler(d); });
 
     dots_enter.append("title")
         .text(function(d) {
@@ -443,7 +453,7 @@ vq.ScatterPlot.prototype.resetData = function(d) {
 };
 
 vq.ScatterPlot.prototype.removeListeners = function() {
-    this.data_rect
+    this.brush_layer
         .on("mousedown.zoom", null)
         .on("mousewheel.zoom", null)
         .on("mousemove.zoom", null)
@@ -456,40 +466,60 @@ vq.ScatterPlot.prototype.removeListeners = function() {
 
 vq.ScatterPlot.prototype.enableZoom = function() {
     var that = this;
-    this.removeListeners();
-
-    this.data_area.select("g.plot_brush").remove();
+    this.brush_layer.select('.extent').style('display','none'); 
+    this.brush_layer.style('cursor','move');
+    this.ignoreBrush = true;
 
     this.data_area.select("svg.symbols").selectAll("circle")
         .attr("class", "fg")
         .call(_.bind(this.setDefaultSymbolStyle, this));
-
-    this.data_rect.call(d3.behavior.zoom().x(this.xScale).y(this.yScale).on("zoom", function(){
+    
+    this.zoom = d3.behavior.zoom().x(this.xScale).y(this.yScale).on("zoom", function(){  
         _.bind(that.updateScales, that, {x: that.xScale, y: that.yScale}, true)();
-    }));
+        });
+    
+    this.brush_layer.call(this.zoom);
+};
+
+vq.ScatterPlot.prototype.disableZoom = function() {
+    var that = this;
+    this.ignoreBrush = false;
+    this.brush.clear(); 
+    this.brush_layer.style('cursor','crosshair').call(this.brush);
+
+    this.brush_layer.select('.extent').style('display',null); 
+    
+    this.zoom.on("zoom", null);
+    this.removeListeners();
 };
 
 vq.ScatterPlot.prototype.enableBrush = function() {
-    this.removeListeners();
 
-    this.data_area.selectAll("g.plot_brush")
-        .remove();
-
-    var brush_layer = this.data_area.append("g")
-        .attr("class", "plot_brush");
-
+    this.ignoreBrush = false;
     this.brush.clear();
 
     this.brush
         .x(this.xScale)
         .y(this.yScale)
+        .on("brushstart",_.bind(this.brushStart, this))
         .on("brush", _.bind(this.brushHandler, this))
         .on("brushend", _.bind(this.brushEnd, this));
 
-    brush_layer.call(this.brush);
+    this.brush_layer.call(this.brush);
+};
+
+vq.ScatterPlot.prototype.brushStart = function() {
+    if ( d3.event && !d3.event.sourceEvent.shiftKey) {
+        this.data_area.select("svg.symbols").selectAll("circle").style('pointer-events','none');
+        if ( this.brush.empty() ) this.disableZoom(); 
+    } else {
+        this.data_area.select("svg.symbols").selectAll("circle").style('pointer-events','all');
+    }
+    
 };
 
 vq.ScatterPlot.prototype.brushHandler = function() {
+    if ( this.ignoreBrush ) { this.brush.clear(); return; }
     var that = this;
     var e = this.brush.extent();
     var dataObj = this.data;
@@ -497,54 +527,45 @@ vq.ScatterPlot.prototype.brushHandler = function() {
     var brushed = function(d) {
         return e[0][0] <= d[that.x] && d[that.x] <= e[1][0] && e[0][1] <= d[that.y] && d[that.y] <= e[1][1];
     };
+    var not_brushed = function(d) { return !brushed(d);};
 
-    this.data_area.select("svg.symbols").selectAll("circle")
-        .attr("class", function(d) {
-            return brushed(d) ? "fg" : "bg";
-        })
-        .style("fill", function(d) {
-            return brushed(d) ? dataObj._fillStyle() : dataObj._unselectedStrokeStyle();
-        })
-        .style("stroke", function(d) {
-            return brushed(d) ? dataObj._strokeStyle() : dataObj._unselectedStrokeStyle();
-        })
+    this.data_area.select("svg.symbols").selectAll("circle").filter(brushed)
+        .attr("class", "fg" )
+        .style("fill",  dataObj._fillStyle() )
+        .style("stroke", dataObj._strokeStyle() )
         .style("stroke-width", dataObj._strokeWidth)
-        .style("opacity", function(d) {
-            return brushed(d) ? 1.0 : 0.5;
-        });
+        .style("opacity", 1.0);
+
+    this.data_area.select("svg.symbols").selectAll("circle").filter(not_brushed)
+        .attr("class", "bg" )
+        .style("fill", dataObj._unselectedStrokeStyle() )
+        .style("stroke", dataObj._unselectedStrokeStyle() )
+        .style("stroke-width", dataObj._strokeWidth)
+        .style("opacity", 0.5);
 };
 
 vq.ScatterPlot.prototype.brushEnd = function() {
+
     var that = this;
     var e = this.brush.extent();
     var dataObj = this.data;
     var handler = dataObj._brushHandler;
+
+     var brushed = function(d) {
+        return e[0][0] <= d[that.x] && d[that.x] <= e[1][0] && e[0][1] <= d[that.y] && d[that.y] <= e[1][1];
+    };
 
     if (this.brush.empty()) {
         this.data_area.select("svg.symbols").selectAll("circle")
             .attr("class", "fg")
             .call(_.bind(this.setDefaultSymbolStyle, this));
 
-        this.data_area.selectAll("g.plot_brush")
-            .remove();
+        this.data_area.select("g.plot_brush").html("");
     }
-
-    (
-        this.data_area.select("svg.symbols").selectAll("circle")
-            .call(function(symbols) {
-                var selected =
-                    _.chain(symbols[0])
-                        .map(function(s) { return s.__data__; })
-                        .filter(function(d) {
-                            return e[0][0] <= d[that.x] && d[that.x] <= e[1][0] && e[0][1] <= d[that.y] && d[that.y] <= e[1][1];
-                        })
-                        .value();
-
-                if (selected.length > 0) {
-                    handler(selected);
-                }
-            })
-    )
+  
+    handler(this.data_area.select("svg.symbols").selectAll("circle").filter(brushed).data());
+       
+    if ( !this.ignoreBrush && this.brush.empty() ) { this.enableZoom(); this.data_area.select("svg.symbols").selectAll("circle").style('pointer-events','all'); }
 };
 
 vq.models.ScatterPlotData = function(data) {
@@ -579,8 +600,10 @@ vq.models.ScatterPlotData.prototype.setDataModel = function () {
         {label : 'COLUMNLABEL.x', id: 'xcolumnlabel',cast : String, defaultValue : ''},
         {label : 'COLUMNLABEL.y', id: 'ycolumnlabel',cast : String, defaultValue : ''},
         {label : 'COLUMNLABEL.value', id: 'valuecolumnlabel',cast : String, defaultValue : ''},
+        {label : 'tooltipTimeout', id: 'tooltip_timeout', defaultValue : 200 },
         {label : 'tooltipItems', id: 'tooltip_items', defaultValue : {
-            X : 'X', Y : 'Y', Value : 'VALUE'            }  },
+            X : 'X', Y : 'Y', Value : 'VALUE'  }  },
+        {label : 'tooltipLinks', id: 'tooltip_links', defaultValue : { }  },
         {label : '_fillStyle', id: 'fill_style',cast :vq.utils.VisUtils.wrapProperty,
             defaultValue : function() {
                 return 'rgba(70,130,180,0.2)';
@@ -619,6 +642,9 @@ vq.models.ScatterPlotData.prototype.setDataModel = function () {
             return null;
         }},
         {label : '_brushHandler', id: 'brush_handler', cast : Function, defaultValue : function() {
+             return null;
+        }},
+         {label : '_clickHandler', id: 'click_handler', cast : Function, defaultValue : function() {
              return null;
         }}
     ];
