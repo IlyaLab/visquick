@@ -95,20 +95,41 @@ vq.ScatterPlot.prototype.draw = function(data) {
     this.brush_layer = this.data_area.append("g")
         .attr("class", "plot_brush");
 
+    this.xAxis = d3.svg.axis()
+                  .scale(scales.x)
+                  .orient("bottom")
+                  .tickSize(-1 * height)
+                  .ticks(5);
+
+    x_ticks = this.data_area.append("g")
+    .attr('class','x axis')
+    .attr("transform", "translate(0," + (height) + ")")
+    .call(this.xAxis);
+
+    this.yAxis = d3.svg.axis()
+                  .scale(scales.y)
+                  .orient("left")
+                  .tickSize(-1 * width)
+                  .ticks(5);
+
+    y_ticks = this.data_area.append("g")
+                .attr('class','y axis')
+                .attr("transform", "translate(0,0)")
+                .call(this.yAxis);
+
     // Add the Y-axis label
     this.data_area.append("g")
-        .append("text")
         .attr("class", "axis")
+        .append("text")
         .text(dataObj.COLUMNLABEL.y)
-        .style("font", dataObj._axisFont)
+        // .style("font", dataObj._axisFont)
         .style("text-anchor", "middle")
         .attr("transform", "translate(" + dataObj.yLabelDisplacement + "," + height / 2 +") rotate(-90)");
 
     // Add the X-axis label
     this.data_area.append("text")
-        .attr("class", "axis")
         .text(dataObj.COLUMNLABEL.x)
-        .style("font", dataObj._axisFont)
+        // .style("font", dataObj._axisFont)
         .attr("x", width / 2)
         .attr("y", height + dataObj.xLabelDisplacement)
         .style("text-anchor", "middle");
@@ -128,6 +149,7 @@ vq.ScatterPlot.prototype.draw = function(data) {
     this.enableZoom();
     this.disableZoom();
     this.enableBrush();
+    this.enableZoom();
 };
 
 vq.ScatterPlot.prototype.getRegressData = function(scaleInfo) {
@@ -211,119 +233,16 @@ vq.ScatterPlot.prototype.updateScales = function(scaleInfo, disableTransition) {
     y = scaleInfo.y;
     y_mid = (y.domain()[0] + y.domain()[1]) / 2.0;
 
-    // Y-axis ticks
-    y_trans = function(d) {
-        return "translate(0," + y(d) + ")";
-    };
+    this.yAxis.scale(y);
+    this.xAxis.scale(x);
 
-    y_trans_enter = function(d) {
-        if (d > y_mid) {
-            return "translate(0,0)"
-        }
-        else {
-            return "translate(0," + height + ")";
-        }
-    };
+    this.data_area.select('g.y.axis').transition()
+    .duration(300)
+    .call(this.yAxis);
 
-    y_ticks = this.data_area.selectAll("g.y-tick")
-        .data(y.ticks(10), String);
-    y_ticks_enter = y_ticks.enter();
-    y_ticks_exit = y_ticks.exit();
-
-    if (enable) {
-        y_ticks = y_ticks.transition()
-            .duration(dr);
-    }
-
-    y_ticks.attr("transform", y_trans);
-
-    y_ticks_enter = y_ticks_enter.insert("g", "a")
-        .attr("class", "y-tick")
-        .attr("transform", y_trans_enter)
-        .style("opacity", 1e-6);
-
-    y_ticks_enter.append("line")
-        .attr("x1", 0)
-        .attr("x2", width)
-        .attr("stroke", "#ccc");
-
-    y_ticks_enter.append("text")
-        .attr("x", dataObj.yTickDisplacement)
-        .style("font", dataObj._tickFont)
-        .attr("text-anchor", "end")
-        .text(d3.format("3.2f"));
-
-    if (enable) {
-        y_ticks_enter = y_ticks_enter.transition()
-            .duration(dr);
-        y_ticks_exit = y_ticks_exit.transition()
-            .duration(dr)
-            .style("opacity", 1e-6);
-    }
-
-    y_ticks_enter
-        .attr("transform", y_trans)
-        .style("opacity", 1.0);
-
-    y_ticks_exit
-        .remove();
-
-    // X-axis ticks
-    x_trans = function(d) {
-        return "translate(" + x(d) + ",0)";
-    };
-
-    x_trans_enter = function(d) {
-        if (d < x_mid) {
-            return "translate(0,0)"
-        }
-        else {
-            return "translate(" + width + ",0)";
-        }
-    };
-
-    x_ticks = this.data_area.selectAll("g.x-tick")
-        .data(x.ticks(10), Number);
-    x_ticks_enter = x_ticks.enter();
-    x_ticks_exit = x_ticks.exit();
-
-    if (enable) {
-        x_ticks = x_ticks.transition()
-            .duration(dr);
-    }
-
-    x_ticks.attr("transform", x_trans);
-
-    x_ticks_enter = x_ticks_enter.insert("g", "a")
-        .attr("class", "x-tick")
-        .attr("transform", x_trans_enter)
-        .style("opacity", 1e-6);
-
-    x_ticks_enter.append("line")
-        .attr("y1", 0)
-        .attr("y2", height)
-        .attr("stroke", "#ccc");
-
-    x_ticks_enter.append("text")
-        .attr("y", height + dataObj.xTickDisplacement)
-        .style("font", dataObj._tickFont)
-        .attr("text-anchor", "middle")
-        .text(d3.format("3.2f"));
-
-    if (enable) {
-        x_ticks_enter = x_ticks_enter.transition()
-            .duration(dr);
-        x_ticks_exit = x_ticks_exit.transition()
-            .duration(dr)
-            .style("opacity", 1e-6);
-    }
-
-    x_ticks_enter
-        .attr("transform", x_trans)
-        .style("opacity", 1.0);
-
-    x_ticks_exit
-        .remove();
+    this.data_area.select('g.x.axis').transition()
+    .duration(300)
+    .call(this.xAxis);
 
     this.xScale = x;
     this.yScale = y;
@@ -343,6 +262,7 @@ vq.ScatterPlot.prototype.updateData = function(disableTransition) {
             include_header : false,
             include_footer : true,
             self_hover : true,
+            offset: { top: 20, left: 20},
             timeout : dataObj.tooltipTimeout,
             data_config : dataObj.tooltipItems,
             tool_config : dataObj.tooltipLinks
@@ -360,6 +280,7 @@ vq.ScatterPlot.prototype.updateData = function(disableTransition) {
         .attr("cx", function(d) {return that.xScale(d[that.x])})
         .attr("cy", function(d) {return that.yScale(d[that.y])})
         .attr("r", dataObj._radius)
+        .style('cursor','pointer')
         .call(_.bind(this.setDefaultSymbolStyle, this))
         .style("opacity", 1e-6)
         .on('mouseover', function(d) { data_hovercard.call(this,d); } )
@@ -509,10 +430,10 @@ vq.ScatterPlot.prototype.enableBrush = function() {
 };
 
 vq.ScatterPlot.prototype.brushStart = function() {
-    if ( d3.event && !d3.event.sourceEvent.shiftKey) {
+    if ( d3.event && !d3.event.sourceEvent.shiftKey) { //brush event
         this.data_area.select("svg.symbols").selectAll("circle").style('pointer-events','none');
-        if ( this.brush.empty() ) this.disableZoom(); 
-    } else {
+        if ( this.brush.empty() ) this.disableZoom();   //brush has a zero area.. just started brushing
+    } else {  //zoom event
         this.data_area.select("svg.symbols").selectAll("circle").style('pointer-events','all');
     }
     
