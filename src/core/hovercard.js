@@ -33,6 +33,7 @@ vq.Hovercard = function(options) {
         this.data_config = options.data_config || null;
         this.tool_config = options.tool_config ||  null;
         this.self_hover = options.self_hover || true;
+        this.offset = options.offset || {top:0, left:0};
         this.include_footer = options.include_footer != null ? options.include_footer : this.self_hover || false;
         this.include_header = options.include_header != null ? options.include_header :  this.self_hover || true;
         this.include_frame = options.include_frame != null ? options.include_frame :  false;
@@ -99,11 +100,11 @@ vq.Hovercard.prototype.togglePin = function() {
 vq.Hovercard.prototype.placeInDocument = function(){
     var card = this.hovercard;
     var target = this.target;
-    var offset = $(target).offset();
+    var target_offset = $(target).offset();
     card.style.display='block';
     $('body').append(card);
-    $(card).offset({top: offset.top, // + offset.height,//+ (20 * this.transform.invert().k ) + 'px';
-        left:  offset.left + $(card).outerWidth() > $('body').outerWidth() ? offset.left - $(card).outerWidth() : offset.left}); // + offset.width});// + (20 * this.transform.invert().k  ) + 'px';
+    $(card).offset({top: this.offset.top + target_offset.top, // + offset.height,//+ (20 * this.transform.invert().k ) + 'px';
+        left:  this.offset.left + target_offset.left + $(card).outerWidth() > $('body').outerWidth() ? this.offset.left + target_offset.left - $(card).outerWidth() : this.offset.left + target_offset.left}); // + offset.width});// + (20 * this.transform.invert().k  ) + 'px';
 
     if (this.include_frame) {
         //$(card).prepend(hr);
@@ -308,7 +309,7 @@ vq.Hovercard.prototype.renderFooter = function() {
         return false;
     }
     $(close).on('click',hideHovercard);
-    $('<i></i>').addClass('icon-remove').html('CLOSE').appendTo(close);
+    $('<i></i>').addClass('icon-remove').html('').appendTo(close);
     $(footer).append(close);
     return footer;
 };
