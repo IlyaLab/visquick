@@ -276,7 +276,7 @@ vq.ScatterPlot.prototype.updateData = function(disableTransition) {
         });
 
     var dots_enter = dots.enter().append("circle")
-        .attr("class", "fg")
+        .attr("class", "data_point")
         .attr("cx", function(d) {return that.xScale(d[that.x])})
         .attr("cy", function(d) {return that.yScale(d[that.y])})
         .attr("r", dataObj._radius)
@@ -284,7 +284,24 @@ vq.ScatterPlot.prototype.updateData = function(disableTransition) {
         .call(_.bind(this.setDefaultSymbolStyle, this))
         .style("opacity", 1e-6)
         .on('mouseover', function(d) { data_hovercard.call(this,d); } )
-        .on('click', function(d) { dataObj._clickHandler(d); });
+        .on('click', function(d) { 
+
+         that.data_area.select("svg.symbols").selectAll("circle")
+            .attr("class", "bg" )
+            .style("fill", dataObj._unselectedStrokeStyle )
+            .style("stroke", dataObj._unselectedStrokeStyle )
+            .style("stroke-width", dataObj._strokeWidth)
+            .style("opacity", 0.5); 
+
+            d3.select(this)
+            .attr("class", "fg" )
+            .style("fill",  dataObj._fillStyle )
+            .style("stroke", dataObj._strokeStyle )
+            .style("stroke-width", dataObj._strokeWidth)
+            .style("opacity", 1.0);
+
+            dataObj._clickHandler(d); 
+        });    
 
     dots_enter.append("title")
         .text(function(d) {
@@ -452,15 +469,15 @@ vq.ScatterPlot.prototype.brushHandler = function() {
 
     this.data_area.select("svg.symbols").selectAll("circle").filter(brushed)
         .attr("class", "fg" )
-        .style("fill",  dataObj._fillStyle() )
-        .style("stroke", dataObj._strokeStyle() )
+        .style("fill",  dataObj._fillStyle )
+        .style("stroke", dataObj._strokeStyle )
         .style("stroke-width", dataObj._strokeWidth)
         .style("opacity", 1.0);
 
     this.data_area.select("svg.symbols").selectAll("circle").filter(not_brushed)
         .attr("class", "bg" )
-        .style("fill", dataObj._unselectedStrokeStyle() )
-        .style("stroke", dataObj._unselectedStrokeStyle() )
+        .style("fill", dataObj._unselectedStrokeStyle )
+        .style("stroke", dataObj._unselectedStrokeStyle )
         .style("stroke-width", dataObj._strokeWidth)
         .style("opacity", 0.5);
 };
