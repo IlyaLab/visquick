@@ -11,9 +11,9 @@
     "url": "git://github.com/rbkreisberg/visquick.git"
   },
   "dependencies": {
-    "d3": "~3.1.5",
     "underscore": "~1.4.4",
     "jquery": "~2.0.0",
-    "science": "git://github.com/jasondavies/science.js.git#~1.9.1"
+    "science": "git://github.com/jasondavies/science.js.git#~1.9.1",
+    "d3": "~3.2.3"
   }
 }
