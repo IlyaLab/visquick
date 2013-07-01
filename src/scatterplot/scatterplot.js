@@ -136,17 +136,15 @@ vq.ScatterPlot.prototype.draw = function(data) {
         .attr("class", "axis")
         .append("text")
         .text(dataObj.COLUMNLABEL.y)
-        // .style("font", dataObj._axisFont)
         .style("text-anchor", "middle")
         .attr("transform", "translate(" + dataObj.yLabelDisplacement + "," + height / 2 +") rotate(-90)");
 
     // Add the X-axis label
     this.data_area.append("text")
-        .text(dataObj.COLUMNLABEL.x)
-        // .style("font", dataObj._axisFont)
         .attr("x", width / 2)
         .attr("y", height + dataObj.xLabelDisplacement)
-        .style("text-anchor", "middle");
+        .style("text-anchor", "middle") 
+        .text(dataObj.COLUMNLABEL.x);
 
     // Clipping container for data points and regression line
     var symbols = this.data_area.append("svg")
@@ -603,14 +601,6 @@ vq.models.ScatterPlotData.prototype.setDataModel = function () {
         }},
         {label : '_shape', id: 'shape',cast : vq.utils.VisUtils.wrapProperty, defaultValue : function() {
             return 'dot';
-        }},
-        {label : '_axisFont', id: 'axis_font',cast :vq.utils.VisUtils.wrapProperty,
-            defaultValue : function() {
-                return '14px helvetica';
-        }},
-        {label : '_tickFont', id: 'tick_font',cast :vq.utils.VisUtils.wrapProperty,
-            defaultValue : function() {
-                return '14px helvetica';
         }},
         {label : '_regression', id: 'regression',cast :String, defaultValue : 'none'},
         {label : '_notifier', id: 'notifier', cast : Function, defaultValue : function() {
