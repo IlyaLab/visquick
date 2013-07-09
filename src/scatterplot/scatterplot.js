@@ -26,7 +26,7 @@ vq.ScatterPlot.prototype.getScales = function(data_array) {
     if (dataObj.yScale) {
         var ys = dataObj.yScale,
         ysE = d3.extent(ys);
-        xScale = d3.scale.linear().domain(ysE).range([dataObj._plot.height, 0]);
+        yScale = d3.scale.linear().domain(ysE).range([dataObj._plot.height, 0]);
     }
 
     var minX = xsE[0] || data_array.reduce(function(previous, current) {
