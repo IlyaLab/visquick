@@ -11,20 +11,34 @@ vq.ScatterPlot.prototype.setRegression = function(obj) {
 
 vq.ScatterPlot.prototype.getScales = function(data_array) {
     var dataObj = this.data;
+    var xScale, yScale, xs, ys, 
+    xsE = [], ysE = [];
 
     var x = dataObj.COLUMNID.x;
     var y = dataObj.COLUMNID.y;
 
-    var minX = data_array.reduce(function(previous, current) {
+    if (dataObj.xScale) {
+        var xs = dataObj.xScale,
+        xsE = d3.extent(xs);
+        xScale = d3.scale.linear().domain(xsE).range([0, dataObj._plot.width]);
+    }
+
+    if (dataObj.yScale) {
+        var ys = dataObj.yScale,
+        ysE = d3.extent(ys);
+        yScale = d3.scale.linear().domain(ysE).range([dataObj._plot.height, 0]);
+    }
+
+    var minX = xsE[0] || data_array.reduce(function(previous, current) {
         return (current[x] != null) && current[x] < previous ? current[x] : previous;
     }, 999999);
-    var maxX = data_array.reduce(function(previous, current) {
+    var maxX = xsE[1] || data_array.reduce(function(previous, current) {
         return (current[x] != null) && current[x] > previous ? current[x] : previous;
     }, -999999);
-    var minY = data_array.reduce(function(previous, current) {
+    var minY = ysE[0] || data_array.reduce(function(previous, current) {
         return (current[y] != null) && current[y] < previous ? current[y] : previous;
     }, 999999);
-    var maxY = data_array.reduce(function(previous, current) {
+    var maxY = ysE[1] || data_array.reduce(function(previous, current) {
         return (current[y] != null) && current[y] > previous ? current[y] : previous;
     }, -999999);
 
@@ -35,8 +49,8 @@ vq.ScatterPlot.prototype.getScales = function(data_array) {
     var showMaxY = maxY + (Math.abs(maxY - minY) * 0.03);
 
     // Start D3.js code
-    var xScale = d3.scale.linear().domain([showMinX, showMaxX]).range([0, dataObj._plot.width]);
-    var yScale = d3.scale.linear().domain([showMinY, showMaxY]).range([dataObj._plot.height, 0]);
+    xScale = xScale || d3.scale.linear().domain([showMinX, showMaxX]).range([0, dataObj._plot.width]);
+    yScale = yScale || d3.scale.linear().domain([showMinY, showMaxY]).range([dataObj._plot.height, 0]);
 
     return {
         x: xScale,
@@ -122,17 +136,15 @@ vq.ScatterPlot.prototype.draw = function(data) {
         .attr("class", "axis")
         .append("text")
         .text(dataObj.COLUMNLABEL.y)
-        // .style("font", dataObj._axisFont)
         .style("text-anchor", "middle")
         .attr("transform", "translate(" + dataObj.yLabelDisplacement + "," + height / 2 +") rotate(-90)");
 
     // Add the X-axis label
     this.data_area.append("text")
-        .text(dataObj.COLUMNLABEL.x)
-        // .style("font", dataObj._axisFont)
         .attr("x", width / 2)
         .attr("y", height + dataObj.xLabelDisplacement)
-        .style("text-anchor", "middle");
+        .style("text-anchor", "middle") 
+        .text(dataObj.COLUMNLABEL.x);
 
     // Clipping container for data points and regression line
     var symbols = this.data_area.append("svg")
@@ -456,6 +468,27 @@ vq.ScatterPlot.prototype.brushStart = function() {
     
 };
 
+vq.ScatterPlot.prototype.highlight = function(obj_props) {
+     var dataObj = this.data;
+
+    this.data_area.select("svg.symbols").selectAll("circle")
+        .attr("class", "bg" )
+        .style("fill", dataObj._unselectedStrokeStyle )
+        .style("stroke", dataObj._unselectedStrokeStyle )
+        .style("stroke-width", dataObj._strokeWidth)
+        .style("opacity", 0.5);
+
+    this.data_area.select("svg.symbols").selectAll("circle").filter( function(a) { 
+        return _.every(obj_props, function(value, key) { return a[key] === value;});
+            })
+        .attr("class", "fg" )
+        .style("fill",  dataObj._fillStyle )
+        .style("stroke", dataObj._strokeStyle )
+        .style("stroke-width", dataObj._strokeWidth )
+        .style("opacity", 1.0);
+
+};
+
 vq.ScatterPlot.prototype.brushHandler = function() {
     if ( this.ignoreBrush ) { this.brush.clear(); return; }
     var that = this;
@@ -534,6 +567,8 @@ vq.models.ScatterPlotData.prototype.setDataModel = function () {
         {label : 'data', id: 'data_array', defaultValue : [] },
         {label : 'COLUMNID.x', id: 'xcolumnid',cast : String, defaultValue : 'X'},
         {label : 'COLUMNID.y', id: 'ycolumnid',cast : String, defaultValue : 'Y'},
+         {label : 'xScale', id: 'xscale', defaultValue : [], optional : true},
+        {label : 'yScale', id: 'yscale', defaultValue : [], optional : true},
         {label : 'COLUMNID.value', id: 'valuecolumnid',cast : String, defaultValue : 'VALUE'},
         {label : 'COLUMNLABEL.x', id: 'xcolumnlabel',cast : String, defaultValue : ''},
         {label : 'COLUMNLABEL.y', id: 'ycolumnlabel',cast : String, defaultValue : ''},
@@ -566,14 +601,6 @@ vq.models.ScatterPlotData.prototype.setDataModel = function () {
         }},
         {label : '_shape', id: 'shape',cast : vq.utils.VisUtils.wrapProperty, defaultValue : function() {
             return 'dot';
-        }},
-        {label : '_axisFont', id: 'axis_font',cast :vq.utils.VisUtils.wrapProperty,
-            defaultValue : function() {
-                return '14px helvetica';
-        }},
-        {label : '_tickFont', id: 'tick_font',cast :vq.utils.VisUtils.wrapProperty,
-            defaultValue : function() {
-                return '14px helvetica';
         }},
         {label : '_regression', id: 'regression',cast :String, defaultValue : 'none'},
         {label : '_notifier', id: 'notifier', cast : Function, defaultValue : function() {

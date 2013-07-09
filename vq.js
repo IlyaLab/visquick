@@ -671,6 +671,169 @@ vq.utils.VisUtils.insertGCFCode = function() {
   <![endif]-->');
 };
 
+/**
+ * @class Provides a set of static functions for use in converting
+ * a google.visualization.DataTable object into a Protovis consumable
+ * JSON array.
+ *
+ * Intended to be used as a static class object to reserve a useful namespace.
+ *
+ * For the Circvis project, the fundamental data element is <b>node</b> JSON object consisting of:
+ *      {chromosome, start, end, value, options}
+ *          {string} chromosome
+ *          {integer} start
+ *          {integer} end
+ *          {string} value
+ *          {string} options
+ *
+ *
+ *
+ */
+
+vq.utils.GoogleDSUtils = {};
+
+    /**     Converts any DataTable object into an array of JSON objects, each object consisting of a single row in the
+     *      DataTable.  The property label is obtained from the getColumnLabel() function of the google.visualiztion.DataTable class.
+     *
+     *      Column types listed as a 'number' are passed in as numeric data.  All other data types are passed in as strings.
+     *
+     *      The returned JSON array conforms to the common input format of Protovis visualizations.
+     *
+     * @param googleDataTable - google.visualizations.DataTable object returned by a google datasource query
+     * @return data_array - JSON array.
+     */
+
+
+    vq.utils.GoogleDSUtils.dataTableToArray = function(googleDataTable) {
+        var table = googleDataTable,
+        data_array=[],
+        headers_array=[],
+        column_type=[];
+        if (table == null) { return [];}
+        for (col=0; col<table.getNumberOfColumns(); col++){
+            headers_array.push(table.getColumnLabel(col));
+            column_type.push(table.getColumnType(col));
+        }
+
+
+        for (row=0; row<table.getNumberOfRows(); row++){
+            var temp_hash={};
+            for (col=0; col<table.getNumberOfColumns(); col++){
+                if(column_type[col].toLowerCase() == 'number') {
+                    temp_hash[headers_array[col]]=table.getValue(row,col);
+                } else {
+                    temp_hash[headers_array[col]]=table.getFormattedValue(row,col);
+                }
+            }
+            data_array.push(temp_hash);
+        }
+        return data_array;
+    };
+
+    /**
+     *  Converts a special DataTable object into a network object used by CircVis.
+     *  For a DataTable with fields: chr1, start1, end1, value1, options1, chr2, start2, end2, value2, options2, linkValue
+     *  the function returns an array of JSON objects consisting of two <b>node</b> JSON objects and a <b>linkValue</b>:
+     *  {node1,node2,linkValue}
+     *
+     *  The JSON array can then be passed into the NETWORK.DATA.data_array parameter used to configure Circvis.
+     *
+     * @param googleDataTable - google.visualizations.DataTable object returned by a google datasource query
+     * @returns network_json_array - a JSON array representation of a Google Visualizations DataTable object. The column label is assigned as the property label
+     */
+
+    vq.utils.GoogleDSUtils.dataTableToNetworkArray = function(googleDataTable) {
+        var data_array = this.dataTableToArray(googleDataTable);
+        return data_array.map(function(c) { return {node1 : {chr:c['chr1'],start:c['start1'],end:c['end1'],value:c['value1'],options:c['options1']},
+        node2 : {chr:c['chr2'],start:c['start2'],end:c['end2'],value:c['value2'],options:c['options2']}, linkValue:c['linkValue']};});
+    };
+
+    /** @private */
+    vq.utils.GoogleDSUtils.getColIndexByLabel = function(table,label) {
+        for (col = 0; col < table.getNumberOfColumns(); col++) {
+            if (label.toLowerCase() == table.getColumnLabel(col).toLowerCase()) {
+                return col;
+            }
+        }
+        return -1;
+    };
+
+
+/**
+ * @class Constructs a utility object for use with multiple-source Ajax requests.
+ * If data must be retrieved from several sources before a workflow may be started, this tool can be used to
+ * check that all necessary data is available.
+ *
+ * @param {integer} timeout number of milliseconds between checks for valid data.  Defaults to 200ms.
+ * @param {total_checks}  total number of checks to perform. Defaults to 20.
+ * @param {callback}    function to call if all data is successfully found
+ * @param {args}    an object containing the variables which will be assigned values by the Ajax responses.
+ * @param {args}    function called if timeout reached without check object being filled.
+ */
+
+vq.utils.SyncDatasources = function(timeout,total_checks,success_callback,args,fail_callback){
+
+        if (timeout && !isNaN(timeout)) {
+            this.timeout = timeout;
+        } else {
+            this.timeout = 200;
+        }
+        if (total_checks && !isNaN(total_checks)) {
+            this.num_checks_until_quit = total_checks;
+        } else {
+            this.num_checks_until_quit = 20;
+        }
+        if (args instanceof Object) {
+            this.args = args;
+        } else {
+            console.log('Error: variable array not passed to timer initialize method.');
+            return;
+        }
+        if (success_callback instanceof Function) {
+            this.success_callback = success_callback
+        } else {
+            console.log('Error: callback function not passed to timer initialize method.');
+            return;
+        }
+     if (fail_callback instanceof Function) {
+            this.fail_callback = fail_callback
+        }
+        this.num_checks_so_far = 0;
+    };
+
+    /**
+     * Initiates the data object poll.  After the maximum number of checks, a log is filed on the console and the object
+     *  aborts the polling operation.
+     */
+
+    vq.utils.SyncDatasources.prototype.start_poll = function() {
+        var that = this;
+        setTimeout(function() { that.poll_args();},that.timeout);
+    };
+
+    /** @private */
+    vq.utils.SyncDatasources.prototype.check_args = function(){
+        var check = true;
+        for (arg in this.args) {
+            if (this.args[arg] == null) { check = false;}
+        }
+        return check;
+    };
+
+    /** @private */
+    vq.utils.SyncDatasources.prototype.poll_args = function(){
+        var that=this;
+        if (this.check_args()) { this.success_callback.apply(); return false;}
+        this.num_checks_so_far++;
+        if(this.num_checks_so_far >= this.num_checks_until_quit) {
+            console.log('Maximum number of polling events reached.  Datasets not loaded.  Aborting.');
+            if (this.fail_callback === undefined) { return false;}
+            else {this.fail_callback.apply(); return false;}
+        }
+        setTimeout(function() { that.poll_args();},that.timeout);
+    };
+
+
  vq.sum = function(list,func) { 
     if (typeof func =='function')  {
         return _.reduce(list,function(a,b,index){ return a+func.call({},b,index);},0);
@@ -874,8 +1037,8 @@ vq.events.Dispatcher = (function() {
 
 vq.Hovercard = function(options) {
     this.id = vq.utils.VisUtils.guid();
-    this.hovercard = document.createElement('div');
-    $(this.hovercard).attr('id',this.id).addClass('hovercard');
+    this.hovercard = document.createElement('div',this.id);
+    $(this.hovercard).addClass('hovercard');
     this.lock_display = false;
     if (options) {
         this.timeout = options.timeout || 800;
@@ -883,6 +1046,7 @@ vq.Hovercard = function(options) {
         this.data_config = options.data_config || null;
         this.tool_config = options.tool_config ||  null;
         this.self_hover = options.self_hover || true;
+        this.offset = options.offset || {top:0, left:0};
         this.include_footer = options.include_footer != null ? options.include_footer : this.self_hover || false;
         this.include_header = options.include_header != null ? options.include_header :  this.self_hover || true;
         this.include_frame = options.include_frame != null ? options.include_frame :  false;
@@ -892,7 +1056,7 @@ vq.Hovercard = function(options) {
 vq.Hovercard.prototype.show = function(anchorTarget,dataObject) {
     var that = this;
     if (!anchorTarget) { throw 'vq.Hovercard.show: target div not found.'; return;}
-    this.target = anchorTarget;
+    this.target =  anchorTarget;
     $('<div></div>').addClass('data').html(this.renderCard(dataObject)).appendTo(that.hovercard);
     if (this.tool_config) {
         $('<div></div>').addClass('links').html(this.renderTools(dataObject)).appendTo(that.hovercard);
@@ -949,11 +1113,11 @@ vq.Hovercard.prototype.togglePin = function() {
 vq.Hovercard.prototype.placeInDocument = function(){
     var card = this.hovercard;
     var target = this.target;
-    var offset = $(target).offset();
+    var target_offset = $(target).offset();
     card.style.display='block';
     $('body').append(card);
-    $(card).offset({top: offset.top, // + offset.height,//+ (20 * this.transform.invert().k ) + 'px';
-        left:  offset.left + $(card).outerWidth() > $('body').outerWidth() ? offset.left - $(card).outerWidth() : offset.left}); // + offset.width});// + (20 * this.transform.invert().k  ) + 'px';
+    $(card).offset({top: this.offset.top + target_offset.top, // + offset.height,//+ (20 * this.transform.invert().k ) + 'px';
+        left:  this.offset.left + target_offset.left + $(card).outerWidth() > $('body').outerWidth() ? this.offset.left + target_offset.left - $(card).outerWidth() : this.offset.left + target_offset.left}); // + offset.width});// + (20 * this.transform.invert().k  ) + 'px';
 
     if (this.include_frame) {
         //$(card).prepend(hr);
@@ -1158,7 +1322,7 @@ vq.Hovercard.prototype.renderFooter = function() {
         return false;
     }
     $(close).on('click',hideHovercard);
-    $('<i></i>').addClass('icon-remove').appendTo(close);
+    $('<i></i>').addClass('icon-remove').html('').appendTo(close);
     $(footer).append(close);
     return footer;
 };
