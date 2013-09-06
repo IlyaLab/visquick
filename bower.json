@@ -8,20 +8,16 @@
 	"vq.scatterplot.js"
 	],
   "ignore": [
-	".DS_Store",
-	".git",
-	".gitignore",
-	".npmignore",
-	".travis.yml",
+    "**/.*",
+    	"node_modules",
+    	"components",
+    	"bower_components",
+    	"examples",
 	"test",
 	"lib",
 	"data",
 	"package.json"
 	],
   "dependencies": {
-    "underscore": "~1.5.1",
-    "jquery": "~2.0.4",
-    "science": "git://github.com/jasondavies/science.js.git#~1.9.1",
-    "d3": "~3.3.3"
   }
 }
