@@ -248,7 +248,7 @@ function _drawWedge_withRange (chr, wedge_index) {
     var wedge = ideogram.wedge[wedge_index];
     var wedge_obj = d3.select('.ideogram[data-region="'+chr+'"] .wedge[data-ring="'+wedge_index+'"]');
 
-    if (wedge_params.draw_axes) {
+    if (wedge_params._draw_axes) {
         /* Circular grid lines. */
         //add a new panel each time we want to draw on top of the previously created image.
         var p = chromoData._chrom.groups[chr];
@@ -705,7 +705,7 @@ function _draw_axes_ticklabels (wedge_index) {
     //don't do this for ring without a range.
     if(!_.isFunction(wedge_params._y_linear)) { return;}
 
-    if (wedge_params.draw_axes) {
+    if (wedge_params._draw_axes) {
         /* Circular grid lines. */
 
         // generate ticks for y_axis
