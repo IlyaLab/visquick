@@ -22,14 +22,17 @@ min: \
 	vq.scatterplot.min.js \
 
 vq.js: \
+	src/start.js \
 	src/core/base.js \
 	src/core/vis.js \
 	src/core/models.js \
 	src/core/utils.js \
 	src/core/events.js \
-	src/core/hovercard.js 	
+	src/core/hovercard.js \
+	src/end.js
 
 vq.circvis.js: \
+	src/start_with_vq.js \
 	src/circvis/circvis.js \
 	src/circvis/wedge.js \
 	src/circvis/ticks.js \
@@ -37,7 +40,8 @@ vq.circvis.js: \
 	src/circvis/circvis_api.js \
 	src/circvis/predicate.js \
 	src/circvis/circvisdata.js \
-	src/circvis/wedgedata.js 
+	src/circvis/wedgedata.js \
+	src/end.js
 
 vq.scatterplot.js: \
 	src/scatterplot/scatterplot.js \
