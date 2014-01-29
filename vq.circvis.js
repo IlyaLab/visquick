@@ -1,3 +1,18 @@
+/** @namespace Top-level namespace, vq **/
+(function (root, factory) {
+   if (typeof exports === 'object' && root.require) {
+     module.exports = factory(require("underscore"), require("d3"), require("jquery"), require("vq"));
+   } else if (typeof define === "function" && define.amd) {
+      // AMD. Register as an anonymous module.
+      define(["underscore","d3", "jquery", "vq"], function(_, d3, $, vq) {
+        // Use global variables if the locals are undefined.
+        return factory(_ || root._, d3 || root.d3, $ || root.$, vq || root.vq);
+      });
+   } else {
+      // RequireJS isn't being used. Assume underscore and d3 are loaded in <script> tags
+      factory(_, d3, $, vq);
+   }
+}(this, function(_, d3, $, vq) {
 //circvis.wedge.js
 
 
@@ -1325,8 +1340,8 @@ vq.models.CircVisData.prototype._setupData = function() {
             if(wedge._plot_type =='karyotype') { return;}
 
             var value_label = wedge._value_key;
-            deviation = Math.sqrt(science.stats.variance(_.pluck(wedge._data,value_label)));
-            median = science.stats.median(_.pluck(wedge._data,value_label));
+            deviation = Math.sqrt(vq.science.stats.variance(_.pluck(wedge._data,value_label)));
+            median = vq.science.stats.median(_.pluck(wedge._data,value_label));
 
             wedge._min_plotValue = (wedge._min_plotValue === undefined) ? parseFloat(((-1 * deviation) + median).toFixed(2)) : wedge._min_plotValue;
             wedge._max_plotValue = (wedge._max_plotValue === undefined) ? parseFloat((deviation + median).toFixed(2)) : wedge._max_plotValue;
@@ -1724,3 +1739,6 @@ vq.models.CircVisData.WedgeData.prototype.setDataModel = function() {
 vq.models.CircVisData.WedgeData.prototype._build_data = function(data_struct) {
     this._processData(data_struct)
 };
+
+return vq;
+}));

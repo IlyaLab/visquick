@@ -1,4 +1,19 @@
 /** @namespace Top-level namespace, vq **/
+(function (root, factory) {
+   if (typeof exports === 'object' && root.require) {
+     module.exports = factory(require("underscore"), require("d3"), require("jquery"));
+   } else if (typeof define === "function" && define.amd) {
+      // AMD. Register as an anonymous module.
+      define(["underscore","d3", "jquery"], function(_, d3, $) {
+        // Use global variables if the locals are undefined.
+        return factory(_ || root._, d3 || root.d3, $ || root.$);
+      });
+   } else {
+      // RequireJS isn't being used. Assume underscore and d3 are loaded in <script> tags
+      factory(_, d3, $);
+   }
+}(this, function(_, d3, $) {
+/** @namespace Top-level namespace, vq **/
 
 if ( _ === undefined ||  _.VERSION === undefined) { console.error("Underscore.js not detected.  Please check that is being loaded.");}
 if (d3 === undefined) { console.error("d3.js not detected.  Please check it is being loaded.")}
@@ -846,8 +861,8 @@ vq.utils.SyncDatasources = function(timeout,total_checks,success_callback,args,f
 
 //import from science.js
 
-(function(exports){
-science = {version: "1.9.1"}; // semver
+(function(root){
+var science = {version: "1.9.1"}; // semver
 science.stats = {};
 science.stats.mean = function(x) {
   var n = x.length;
@@ -917,7 +932,8 @@ science.stats.quantiles = function(d, quantiles) {
 science.ascending = function(a, b) {
   return a - b;
 };
-})(this);/* vq.events.js */
+root.science = science;
+})(vq);/* vq.events.js */
 
 /** @namespace The namespace for event classes. **/
 vq.events = {};
@@ -1076,9 +1092,10 @@ vq.Hovercard.prototype.show = function(anchorTarget,dataObject) {
 
 };
 
-vq.Hovercard.prototype.startOutTimer =   function() {
+vq.Hovercard.prototype.startOutTimer = function(param_timeout) {
     var that = this;
-    if (!this.outtimer_id){ this.outtimer_id = window.setTimeout(function(){that.trigger();},that.timeout); }
+    var timeout = param_timeout || that.timeout;
+    if (!this.outtimer_id){ this.outtimer_id = window.setTimeout(function(){ that.trigger(); }, timeout); }
 };
 
 vq.Hovercard.prototype.cancelOutTimer =  function() {
@@ -1113,14 +1130,13 @@ vq.Hovercard.prototype.togglePin = function() {
 vq.Hovercard.prototype.placeInDocument = function(){
     var card = this.hovercard;
     var target = this.target;
-    var target_offset = $(target).offset();
+    var offset = $(target).offset();
     card.style.display='block';
     $('body').append(card);
-    $(card).offset({top: this.offset.top + target_offset.top, // + offset.height,//+ (20 * this.transform.invert().k ) + 'px';
-        left:  this.offset.left + target_offset.left + $(card).outerWidth() > $('body').outerWidth() ? this.offset.left + target_offset.left - $(card).outerWidth() : this.offset.left + target_offset.left}); // + offset.width});// + (20 * this.transform.invert().k  ) + 'px';
+    $(card).offset({top: offset.top, // + offset.height,//+ (20 * this.transform.invert().k ) + 'px';
+        left:  offset.left + $(card).outerWidth() > $('body').outerWidth() ? offset.left - $(card).outerWidth() : offset.left}); // + offset.width});// + (20 * this.transform.invert().k  ) + 'px';
 
     if (this.include_frame) {
-        //$(card).prepend(hr);
         this.frame = this.renderFrame();
         $(card).prepend(this.frame);
         this.attachMoveListener();}
@@ -1214,6 +1230,7 @@ vq.Hovercard.prototype.renderFrame = function() {
 };
 
 vq.Hovercard.prototype.renderTools = function(dataObject) {
+    var that = this;
     var get = vq.utils.VisUtils.get;
     var table = document.createElement('table');
     var tBody = document.createElement("tbody");
@@ -1234,7 +1251,13 @@ vq.Hovercard.prototype.renderTools = function(dataObject) {
                     continue;
                 }
 
-                $(link).attr('target',"_blank");
+                // After a link is clicked, always destroy the hovercard.
+                $(link).on("click", function() {
+                    $(that.getContainer()).off('mouseover',that.cancel);
+                    that.startOutTimer(1000);
+                });
+
+                //$(link).attr('target',"_blank");
                 $(link).html(key);
                 if(this.tool_config[key].key) {
                     var icon = document.createElement('i');
@@ -1375,9 +1398,11 @@ vq.hovercard = function(opts) {
         opts.include_footer = true;
         opts.target = mark;
 
-        var c_id = $('#'+opts.canvas_id).first().parent().attr('id'); //this.root.canvas();
+        var $canvas = $('#'+opts.canvas_id).first().parent();
+
+        var c_id = opts.canvas_id || $canvas.attr('id') || 'fixme'; //this.root.canvas();
         if (!$('#' + c_id+'_rel').length) {
-            $('#'+c_id).prepend('<div id='+ c_id+'_rel></div>');
+            $canvas.prepend('<div id='+ c_id+'_rel></div>');
             var relative_div = $('#'+c_id+'_rel');
             relative_div.css({'position':'relative','top':'0px','zIndex':'-1'});
         }
@@ -1400,3 +1425,6 @@ vq.hovercard = function(opts) {
 };
 
 
+
+return vq;
+}));
