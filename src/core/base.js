@@ -4,7 +4,7 @@ if ( _ === undefined ||  _.VERSION === undefined) { console.error("Underscore.js
 if (d3 === undefined) { console.error("d3.js not detected.  Please check it is being loaded.")}
 vq = {};
 
-vq.VERSION = '2.0';
+vq.VERSION = '0.1.2';
 
 /**
  * @class Abstract base class for VisQuick.  Handles properties of the Visualizations and the data models. *
