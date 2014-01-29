@@ -273,8 +273,8 @@ vq.models.CircVisData.prototype._setupData = function() {
             if(wedge._plot_type =='karyotype') { return;}
 
             var value_label = wedge._value_key;
-            deviation = Math.sqrt(science.stats.variance(_.pluck(wedge._data,value_label)));
-            median = science.stats.median(_.pluck(wedge._data,value_label));
+            deviation = Math.sqrt(vq.science.stats.variance(_.pluck(wedge._data,value_label)));
+            median = vq.science.stats.median(_.pluck(wedge._data,value_label));
 
             wedge._min_plotValue = (wedge._min_plotValue === undefined) ? parseFloat(((-1 * deviation) + median).toFixed(2)) : wedge._min_plotValue;
             wedge._max_plotValue = (wedge._max_plotValue === undefined) ? parseFloat((deviation + median).toFixed(2)) : wedge._max_plotValue;

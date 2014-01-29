@@ -63,9 +63,10 @@ vq.Hovercard.prototype.show = function(anchorTarget,dataObject) {
 
 };
 
-vq.Hovercard.prototype.startOutTimer =   function() {
+vq.Hovercard.prototype.startOutTimer = function(param_timeout) {
     var that = this;
-    if (!this.outtimer_id){ this.outtimer_id = window.setTimeout(function(){that.trigger();},that.timeout); }
+    var timeout = param_timeout || that.timeout;
+    if (!this.outtimer_id){ this.outtimer_id = window.setTimeout(function(){ that.trigger(); }, timeout); }
 };
 
 vq.Hovercard.prototype.cancelOutTimer =  function() {
@@ -100,14 +101,13 @@ vq.Hovercard.prototype.togglePin = function() {
 vq.Hovercard.prototype.placeInDocument = function(){
     var card = this.hovercard;
     var target = this.target;
-    var target_offset = $(target).offset();
+    var offset = $(target).offset();
     card.style.display='block';
     $('body').append(card);
-    $(card).offset({top: this.offset.top + target_offset.top, // + offset.height,//+ (20 * this.transform.invert().k ) + 'px';
-        left:  this.offset.left + target_offset.left + $(card).outerWidth() > $('body').outerWidth() ? this.offset.left + target_offset.left - $(card).outerWidth() : this.offset.left + target_offset.left}); // + offset.width});// + (20 * this.transform.invert().k  ) + 'px';
+    $(card).offset({top: offset.top, // + offset.height,//+ (20 * this.transform.invert().k ) + 'px';
+        left:  offset.left + $(card).outerWidth() > $('body').outerWidth() ? offset.left - $(card).outerWidth() : offset.left}); // + offset.width});// + (20 * this.transform.invert().k  ) + 'px';
 
     if (this.include_frame) {
-        //$(card).prepend(hr);
         this.frame = this.renderFrame();
         $(card).prepend(this.frame);
         this.attachMoveListener();}
@@ -201,6 +201,7 @@ vq.Hovercard.prototype.renderFrame = function() {
 };
 
 vq.Hovercard.prototype.renderTools = function(dataObject) {
+    var that = this;
     var get = vq.utils.VisUtils.get;
     var table = document.createElement('table');
     var tBody = document.createElement("tbody");
@@ -221,7 +222,13 @@ vq.Hovercard.prototype.renderTools = function(dataObject) {
                     continue;
                 }
 
-                $(link).attr('target',"_blank");
+                // After a link is clicked, always destroy the hovercard.
+                $(link).on("click", function() {
+                    $(that.getContainer()).off('mouseover',that.cancel);
+                    that.startOutTimer(1000);
+                });
+
+                //$(link).attr('target',"_blank");
                 $(link).html(key);
                 if(this.tool_config[key].key) {
                     var icon = document.createElement('i');
@@ -362,9 +369,11 @@ vq.hovercard = function(opts) {
         opts.include_footer = true;
         opts.target = mark;
 
-        var c_id = $('#'+opts.canvas_id).first().parent().attr('id'); //this.root.canvas();
+        var $canvas = $('#'+opts.canvas_id).first().parent();
+
+        var c_id = opts.canvas_id || $canvas.attr('id') || 'fixme'; //this.root.canvas();
         if (!$('#' + c_id+'_rel').length) {
-            $('#'+c_id).prepend('<div id='+ c_id+'_rel></div>');
+            $canvas.prepend('<div id='+ c_id+'_rel></div>');
             var relative_div = $('#'+c_id+'_rel');
             relative_div.css({'position':'relative','top':'0px','zIndex':'-1'});
         }

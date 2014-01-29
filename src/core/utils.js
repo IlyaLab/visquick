@@ -581,8 +581,8 @@ vq.utils.SyncDatasources = function(timeout,total_checks,success_callback,args,f
 
 //import from science.js
 
-(function(exports){
-science = {version: "1.9.1"}; // semver
+(function(root){
+var science = {version: "1.9.1"}; // semver
 science.stats = {};
 science.stats.mean = function(x) {
   var n = x.length;
@@ -652,4 +652,5 @@ science.stats.quantiles = function(d, quantiles) {
 science.ascending = function(a, b) {
   return a - b;
 };
-})(this);
+root.science = science;
+})(vq);
