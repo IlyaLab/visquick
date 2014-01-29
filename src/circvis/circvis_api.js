@@ -103,7 +103,7 @@ circvis.removeNodes = function(node_array) {
         });
         _.each(_.uniq(_.pluck(node_array,'chr')), draw_ideogram_data);
     }
-    else if (_.isObject(node_array)){
+    if (_.isObject(node_array)){
         chromoData._removeNode(node_array);
         draw_ideogram_data(node_array.chr);
     }

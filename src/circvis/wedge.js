@@ -106,7 +106,7 @@ function _drawWedge_withRange (chr, wedge_index) {
     var wedge = ideogram.wedge[wedge_index];
     var wedge_obj = d3.select('.ideogram[data-region="'+chr+'"] .wedge[data-ring="'+wedge_index+'"]');
 
-    if (wedge_params.draw_axes) {
+    if (wedge_params._draw_axes) {
         /* Circular grid lines. */
         //add a new panel each time we want to draw on top of the previously created image.
         var p = chromoData._chrom.groups[chr];
@@ -175,7 +175,7 @@ var _drawWedgeData_array = {
     'barchart' : function (chr, wedge_index) {
     
     var wedge_params = chromoData._wedge[wedge_index];
-    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index];
+    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index] || [];
     var value_key = wedge_params._value_key;
     var wedge_obj = d3.select('.ideogram[data-region="'+chr+'"] .wedge[data-ring="'+wedge_index+'"]');
 
@@ -226,7 +226,7 @@ var _drawWedgeData_array = {
  'scatterplot' : function (chr, wedge_index) {
     
     var wedge_params = chromoData._wedge[wedge_index];
-    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index];
+    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index] || [];
     var value_key = wedge_params._value_key;
     var center = vq.utils.VisUtils.tileCenter;
     var wedge_obj = d3.select('.ideogram[data-region="'+chr+'"] .wedge[data-ring="'+wedge_index+'"]');
@@ -354,7 +354,7 @@ var _drawWedgeData_array = {
 'band' : function (chr, wedge_index) {
     
     var wedge_params = chromoData._wedge[wedge_index];
-    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index];
+    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index] || [];
     var value_key = wedge_params._value_key;
 
     var wedge_obj = d3.select('.ideogram[data-region="'+chr+'"] .wedge[data-ring="'+wedge_index+'"]');
@@ -392,7 +392,7 @@ var _drawWedgeData_array = {
  'glyph' : function (chr, wedge_index) {
     var center = vq.utils.VisUtils.tileCenter;
     var wedge_params = chromoData._wedge[wedge_index];
-    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index];
+    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index] || [];
     var value_key = wedge_params._value_key;
     var wedge_obj = d3.select('.ideogram[data-region="'+chr+'"] .wedge[data-ring="'+wedge_index+'"]');
 
@@ -431,7 +431,7 @@ var _drawWedgeData_array = {
  'tile' : function(chr, wedge_index) {
     
     var wedge_params = chromoData._wedge[wedge_index];
-    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index];
+    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index] || [];
     var value_key = wedge_params._value_key;
     var wedge_obj = d3.select('.ideogram[data-region="'+chr+'"] .wedge[data-ring="'+wedge_index+'"]');
 
@@ -466,7 +466,7 @@ var _drawWedgeData_array = {
  'karyotype' : function (chr, wedge_index) {
     
     var wedge_params = chromoData._wedge[wedge_index];
-    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index];
+    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index] || [];
     var value_key = wedge_params._value_key;
     var wedge_obj = d3.select('.ideogram[data-region="'+chr+'"] .wedge[data-ring="'+wedge_index+'"]');
     var karyotype = wedge_obj.select('g.data')
@@ -500,7 +500,7 @@ var _drawWedgeData_array = {
  'heatmap' : function (chr, wedge_index) {
     
     var wedge_params = chromoData._wedge[wedge_index];
-    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index];
+    var wedge_data = chromoData._ideograms[chr].wedge[wedge_index] || [];
     var value_key = wedge_params._value_key;
     var wedge_obj = d3.select('.ideogram[data-region="'+chr+'"] .wedge[data-ring="'+wedge_index+'"]');
 
@@ -563,7 +563,7 @@ function _draw_axes_ticklabels (wedge_index) {
     //don't do this for ring without a range.
     if(!_.isFunction(wedge_params._y_linear)) { return;}
 
-    if (wedge_params.draw_axes) {
+    if (wedge_params._draw_axes) {
         /* Circular grid lines. */
 
         // generate ticks for y_axis

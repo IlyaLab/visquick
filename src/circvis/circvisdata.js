@@ -215,7 +215,7 @@ vq.models.CircVisData.prototype._setupData = function() {
 
 //Global Data
 
-    if (this._data.features,length) {     
+    if (this._data.features.length) {     
        this._data.chr = _.groupBy(this._data.features,'chr');
     } 
 
