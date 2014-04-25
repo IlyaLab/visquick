@@ -1,0 +1,10 @@
+image: bradrydzewski/node:0.10
+env:
+script:
+	- npm install
+	- bower install
+	- grunt build
+notify:
+  email:
+     recipients:
+     	-rbkreisberg@gmail.com
