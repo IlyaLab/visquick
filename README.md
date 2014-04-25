@@ -1,4 +1,5 @@
 ## Visquick
+[![Build Status](http://nube.systemsbiology.net/github.com/rbkreisberg/visquick/status.svg?branch=master)](http://nube.systemsbiology.net/github.com/rbkreisberg/visquick)
 
 A set of d3-based JS visualizations.
 
