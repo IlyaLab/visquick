@@ -1,5 +1,4 @@
 image: bradrydzewski/node:0.10
-env:
 script:
 	- npm install
 	- bower install
@@ -7,4 +6,4 @@ script:
 notify:
   email:
      recipients:
-     	-rbkreisberg@gmail.com
+     	- rbkreisberg@gmail.com
