@@ -1,13 +1,6 @@
-## Visquick
-[![Build Status](http://nube.systemsbiology.net/github.com/rbkreisberg/visquick/status.svg?branch=master)](http://nube.systemsbiology.net/github.com/rbkreisberg/visquick)
+VisQuick is a Javascript library utilizing the Protovis project to provide configurable, interactive, informative data exploration tools.
 
-A set of d3-based JS visualizations.
-
-Circvis: a circular ideogram layout for the web.  It implements basic functionality, inspired by Circos (circos.ca)
-
-requires:
-*d3
-*underscore 
-
-sometimes: 
-*science.js
+API Docs
+Examples
+Tools built with VisQuick
+For more information, please contact codefor@systemsbiology.org.
